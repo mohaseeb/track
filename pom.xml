@@ -20,7 +20,7 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
-					<mainClass>org.springframework.shell.samples.SpringShellSample</mainClass>
+					<mainClass>org.springframework.shell.samples.TrackShell</mainClass>
 				</configuration>
 			</plugin>
 		</plugins>

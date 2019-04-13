@@ -39,25 +39,17 @@ import javax.validation.constraints.Size;
  */
 @ShellComponent()
 public class Commands {
+	private final static String NOTSET = "not set";
 
-	@ShellMethod(value = "A command whose name looks the same as another one.", key = "help me out")
-	public void helpMeOut() {
-		System.out.println("You can go");
+	@ShellMethod(value = "Starts a an episode")
+	public void start(@ShellOption(defaultValue=NOTSET) String when) {
+		System.out.println("start episode");
 	}
 
-	@ShellMethod("Change Password. Shows support for bean validation.")
-	public String changePassword(@Size(min = 8) String password) {
-		return "Password changed";
-	}
-	
-	@ShellMethod(value = "Shows non trivial character encoding.")
-	public String helloWorld() {
-		return "こんにちは世界";
-	}
 
-	@ShellMethod("Shows support for boolean parameters, with arity=0.")
-	public void shutdown(@ShellOption(arity = 0) boolean force) {
-		System.out.println("You passed " + force);
+	@ShellMethod(value = "Ends the last episode")
+	public void end(@ShellOption(defaultValue=NOTSET) String when) {
+		System.out.println("close the last open episode");
 	}
 
 	@ShellMethod("Test completion of special values.")
@@ -65,20 +57,29 @@ public class Commands {
 		System.out.println("You said " + text);
 	}
 
-	@ShellMethod("Add numbers.")
-	public int add(int a, int b, int c) {
-		return a + b + c;
+
+	@ShellMethod(value = "show current day")
+	public void day() {
+		System.out.println("close the last open episode");
 	}
 
-	@ShellMethod("Fails with an exception. Shows enum conversion.")
-	public void fail(ElementType elementType) {
-		throw new IllegalArgumentException("You said " + elementType);
+	@ShellMethod(value = "show current week days")
+	public void week(@ShellOption(defaultValue=NOTSET) String weekNo) {
+		System.out.println("close the last open episode");
 	}
 
-	@ShellMethod("Add array numbers.")
-	public double addDoubles(@ShellOption(arity = 3) double[] numbers) {
-		return Arrays.stream(numbers).sum();
+
+	@ShellMethod(value = "show current month weeks")
+	public void month(@ShellOption(defaultValue=NOTSET) String monthNo) {
+		System.out.println("close the last open episode");
 	}
+
+	@ShellMethod(value = "show current months")
+	public void year(@ShellOption(defaultValue=NOTSET) String yearNo) {
+		System.out.println("close the last open episode");
+	}
+
+
 }
 
 /**

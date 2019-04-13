@@ -23,10 +23,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.shell.SpringShellAutoConfiguration;
 import org.springframework.shell.jcommander.JCommanderParameterResolverAutoConfiguration;
 import org.springframework.shell.jline.JLineShellAutoConfiguration;
-import org.springframework.shell.samples.jcommander.JCommanderCommands;
-import org.springframework.shell.samples.legacy.LegacyCommands;
 import org.springframework.shell.samples.standard.Commands;
-import org.springframework.shell.samples.standard.DynamicCommands;
 import org.springframework.shell.samples.standard.TableCommands;
 import org.springframework.shell.standard.FileValueProvider;
 import org.springframework.shell.standard.StandardAPIAutoConfiguration;
@@ -42,19 +39,20 @@ import org.springframework.shell.standard.commands.StandardCommandsAutoConfigura
 		// Core runtime
 		SpringShellAutoConfiguration.class,
 		JLineShellAutoConfiguration.class,
+
 		// Various Resolvers
 		JCommanderParameterResolverAutoConfiguration.class,
 		StandardAPIAutoConfiguration.class,
+
 		// Built-In Commands
 		StandardCommandsAutoConfiguration.class,
+
 		// Allows ${} support
 		//PropertyPlaceholderAutoConfiguration.class,
+
 		// Sample Commands
-		JCommanderCommands.class,
-		LegacyCommands.class,
 		Commands.class,
 		FileValueProvider.class,
-		DynamicCommands.class,
 		TableCommands.class,
 		})
 public class NoAutoConf {

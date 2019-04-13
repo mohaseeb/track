@@ -16,7 +16,6 @@
 
 package org.springframework.shell.samples;
 
-import org.jline.terminal.Terminal;
 import org.jline.utils.AttributedString;
 import org.jline.utils.AttributedStyle;
 
@@ -34,14 +33,14 @@ import org.springframework.shell.jline.PromptProvider;
  * @author Eric Bottard
  */
 @SpringBootApplication
-public class SpringShellSample {
+public class TrackShell {
 
 	public static void main(String[] args) throws Exception {
-		ConfigurableApplicationContext context = SpringApplication.run(SpringShellSample.class, args);
+		ConfigurableApplicationContext context = SpringApplication.run(TrackShell.class, args);
 	}
 
 	@Bean
-	public PromptProvider myPromptProvider() {
-		return () -> new AttributedString("my-shell:>", AttributedStyle.DEFAULT.foreground(AttributedStyle.YELLOW));
+	public PromptProvider trackPromptProvider() {
+		return () -> new AttributedString("track:>", AttributedStyle.DEFAULT.foreground(AttributedStyle.YELLOW));
 	}
 }

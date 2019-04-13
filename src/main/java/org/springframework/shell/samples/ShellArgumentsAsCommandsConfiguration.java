@@ -35,7 +35,7 @@ import org.springframework.shell.jline.InteractiveShellApplicationRunner;
 import org.springframework.util.StringUtils;
 
 @Configuration
-public class ExampleApplicationRunnerConfiguration {
+public class ShellArgumentsAsCommandsConfiguration {
 
 	@Autowired
 	private Shell shell;
