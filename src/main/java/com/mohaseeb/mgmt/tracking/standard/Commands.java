@@ -16,11 +16,6 @@
 
 package com.mohaseeb.mgmt.tracking.standard;
 
-import java.time.Instant;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import com.mohaseeb.mgmt.tracking.application.TrackingService;
 import com.mohaseeb.mgmt.tracking.domain.Segment;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +27,11 @@ import org.springframework.shell.standard.ShellMethod;
 import org.springframework.shell.standard.ShellOption;
 import org.springframework.shell.standard.ValueProviderSupport;
 import org.springframework.stereotype.Component;
+
+import java.time.Instant;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Example commands for the Shell 2 Standard resolver.
@@ -46,13 +46,13 @@ public class Commands {
     private TrackingService service;
 
     @ShellMethod(value = "Starts a an episode")
-    public void start(@ShellOption(defaultValue = NOTSET) String when) {
+    public void start(@ShellOption(valueProvider = CurrentTimestampProvider.class) String when) {
         Segment segment = service.start(parseInstant(when));
         System.out.println("Started: \n" + segment);
     }
 
     @ShellMethod(value = "Ends the last episode")
-    public void end(@ShellOption(defaultValue = NOTSET) String when) {
+    public void end(@ShellOption(valueProvider = CurrentTimestampProvider.class) String when) {
         Segment segment = service.end(parseInstant(when));
         System.out.println("Ended: \n" + segment);
     }
@@ -73,12 +73,24 @@ public class Commands {
         }
     }
 
-    /*
     @ShellMethod(value = "show current day")
     public void day() {
-        System.out.println("close the last open episode");
+        // get today start
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(
+                calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DATE),
+                0, 0, 0
+        );
+        Instant todayStart = calendar.toInstant();
+
+        // get tomorrow start
+        calendar.add(Calendar.DATE, 1);
+        Instant tomorrowStart = calendar.toInstant();
+
+        System.out.printf("Today's total: %.2f hours\n", service.hoursBetween(todayStart, tomorrowStart));
     }
 
+    /*
     @ShellMethod(value = "show current week days")
     public void week(@ShellOption(defaultValue = NOTSET) String weekNo) {
         System.out.println("close the last open episode");
@@ -95,10 +107,6 @@ public class Commands {
         System.out.println("close the last open episode");
     }
 
-    @ShellMethod("Test completion of special values.")
-    public void quote(@ShellOption(valueProvider = FunnyValuesProvider.class) String text) {
-        System.out.println("You said " + text);
-    }
 */
 }
 
@@ -109,16 +117,10 @@ public class Commands {
  * @author Eric Bottard
  */
 @Component
-class FunnyValuesProvider extends ValueProviderSupport {
-
-    private final static String[] VALUES = new String[]{
-            "hello world",
-            "I'm quoting \"The Daily Mail\"",
-            "10 \\ 3 = 3"
-    };
+class CurrentTimestampProvider extends ValueProviderSupport {
 
     @Override
     public List<CompletionProposal> complete(MethodParameter parameter, CompletionContext completionContext, String[] hints) {
-        return Arrays.stream(VALUES).map(CompletionProposal::new).collect(Collectors.toList());
+        return Collections.singletonList(new CompletionProposal(Instant.now().toString()));
     }
 }

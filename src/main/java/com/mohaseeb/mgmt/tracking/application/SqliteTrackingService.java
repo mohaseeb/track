@@ -4,6 +4,7 @@ import com.mohaseeb.mgmt.tracking.domain.Segment;
 import com.mohaseeb.mgmt.tracking.sqlite.SegmentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.time.Instant;
 import java.util.List;
 
 public class SqliteTrackingService implements TrackingService {
@@ -14,6 +15,11 @@ public class SqliteTrackingService implements TrackingService {
     @Override
     public List<Segment> getAll() {
         return repository.findAll();
+    }
+
+    @Override
+    public List<Segment> getBetween(Instant start, Instant end) {
+        return repository.findAllByStartBetween(start, end);
     }
 
     @Override

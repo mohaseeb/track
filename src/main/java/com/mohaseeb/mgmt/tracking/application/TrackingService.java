@@ -32,9 +32,24 @@ public interface TrackingService {
         return replaceLast(last);
     }
 
+    default double hoursBetween(Instant start, Instant end){
+        return durationBetween(start, end, seconds -> seconds / (60. * 60.));
+    }
+
+    default double durationBetween(Instant start, Instant end, FromSecondsConverter converter){
+        long seconds = getBetween(start, end).stream().mapToLong(Segment::getDuration).sum();
+        return converter.convert(seconds);
+    }
+
+    List<Segment> getBetween(Instant start, Instant end);
+
     Segment getLast();
 
     Segment append(Segment segment);
 
     Segment replaceLast(Segment segment);
+}
+
+interface FromSecondsConverter {
+    double convert(long seconds);
 }

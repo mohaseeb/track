@@ -2,6 +2,7 @@ package com.mohaseeb.mgmt.tracking.application;
 
 import com.mohaseeb.mgmt.tracking.domain.Segment;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,6 +17,11 @@ public class InMemoryTrackingService implements TrackingService {
     @Override
     public List<Segment> getAll() {
         return segments;
+    }
+
+    @Override
+    public List<Segment> getBetween(Instant start, Instant end) {
+        return null;
     }
 
     public Segment getLast() {
