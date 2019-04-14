@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.shell.samples.standard;
+package com.mohaseeb.mgmt.tracking.standard;
 
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;

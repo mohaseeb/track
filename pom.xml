@@ -1,54 +1,71 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-	<artifactId>spring-shell-samples</artifactId>
-	<name>Spring Shell Samples</name>
-	<packaging>jar</packaging>
+    <groupId>com.mohaseeb.mgmt</groupId>
+    <artifactId>track</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+    <name>track time segments</name>
+    <packaging>jar</packaging>
 
-	<parent>
-		<groupId>org.springframework.shell</groupId>
-		<artifactId>spring-shell-parent</artifactId>
-		<version>3.0.0.BUILD-SNAPSHOT</version>
-	</parent>
-	
-	<description>Examples of using Spring Shell 2</description>
-
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-				<configuration>
-					<mainClass>org.springframework.shell.samples.TrackShell</mainClass>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
-
-	<dependencies>
-
-		<!-- The following starter brings everything you need, including adapters that trigger only if needed-->
-		<dependency>
-			<groupId>org.springframework.shell</groupId>
-			<artifactId>spring-shell-starter</artifactId>
-		</dependency>
-
-		<!-- Depend on Shell 1 to use Shell 1 API -->
-		<dependency>
-			<groupId>org.springframework.shell</groupId>
-			<artifactId>spring-shell</artifactId>
-			<version>1.2.0.RELEASE</version>
-		</dependency>
-
-		<!-- Depend on JCommander to use JCommander API -->
-		<dependency>
-			<groupId>com.beust</groupId>
-			<artifactId>jcommander</artifactId>
-			<version>1.48</version>
-		</dependency>
+    <description>Keep track of time segments</description>
 
 
-	</dependencies>
-	
+    <parent>
+        <groupId>org.springframework.shell</groupId>
+        <artifactId>spring-shell-parent</artifactId>
+        <version>3.0.0.BUILD-SNAPSHOT</version>
+    </parent>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <mainClass>com.mohaseeb.mgmt.tracking.TrackShell</mainClass>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>8</source>
+                    <target>8</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+
+        <!-- The following starter brings everything you need, including adapters that trigger only if needed-->
+        <dependency>
+            <groupId>org.springframework.shell</groupId>
+            <artifactId>spring-shell-starter</artifactId>
+            <version>2.0.0.RELEASE</version>
+        </dependency>
+
+        <!-- Depend on JCommander to use JCommander API -->
+        <dependency>
+            <groupId>com.beust</groupId>
+            <artifactId>jcommander</artifactId>
+            <version>1.48</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.16.8</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>5.4.1</version>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
 </project>

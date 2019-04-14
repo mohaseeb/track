@@ -1,0 +1,79 @@
+package com.mohaseeb.mgmt.tracking.application;
+
+import com.mohaseeb.mgmt.tracking.domain.Segment;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import java.time.Instant;
+import java.util.ServiceConfigurationError;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+class InMemoryTrackingServiceTest {
+    private TrackingService service;
+
+    @BeforeEach
+    void init() {
+        service = new InMemoryTrackingService();
+    }
+
+    @Test
+    void getAll() {
+        assertEquals(service.getAll().size(), 0);
+    }
+
+    @Test
+    void testStart() {
+        Instant ts = Instant.now();
+        Segment segment = service.start(ts);
+
+        assertEquals(0, segment.getId());
+        assertEquals(ts, segment.getStart());
+        assertNull(segment.getEnd());
+        assertEquals(0, segment.getDuration());
+    }
+
+    @Test
+    void testStartOpenSegment() {
+        Instant ts = Instant.now();
+        Segment segment = service.start(ts);
+        assertEquals(0, segment.getId());
+
+        // Add a second segment before closing the first one
+        assertThrows(IllegalStateException.class, () -> service.start(Instant.now()));
+    }
+
+
+    @Test
+    void end() {
+        Instant ts = Instant.now();
+        service.start(ts);
+
+        int elapsed = 10;
+        Instant ts2 = Instant.ofEpochSecond(ts.getEpochSecond() + elapsed);
+        Segment closedSegment = service.end(ts2);
+
+        assertEquals(elapsed, closedSegment.getDuration());
+
+        // Check it is OK to open a new segment
+        Segment newSegment = service.start(Instant.now());
+        assertNotNull(newSegment.getStart());
+        assertNull(newSegment.getEnd());
+        assertEquals(2, service.getAll().size());
+    }
+
+    @Test
+    void endZeroSegments(){
+        assertThrows(IllegalStateException.class, () -> service.end(Instant.now()));
+    }
+
+    @Test
+    void endClosedSegment(){
+        service.start(Instant.now());
+        Segment closed = service.end(Instant.now());
+        assertEquals(1, service.getAll().size());
+        assertNotNull(closed.getEnd());
+
+        assertThrows(IllegalStateException.class, () -> service.end(Instant.now()));
+    }
+}
