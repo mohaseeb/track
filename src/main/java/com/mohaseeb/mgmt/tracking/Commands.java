@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package com.mohaseeb.mgmt.tracking.standard;
+package com.mohaseeb.mgmt.tracking;
 
-import com.mohaseeb.mgmt.tracking.TimeUtils;
 import com.mohaseeb.mgmt.tracking.application.TrackingService;
 import com.mohaseeb.mgmt.tracking.domain.Segment;
 import org.joda.time.Instant;
@@ -24,20 +23,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.MethodParameter;
 import org.springframework.shell.CompletionContext;
 import org.springframework.shell.CompletionProposal;
+import org.springframework.shell.Utils;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
 import org.springframework.shell.standard.ShellOption;
 import org.springframework.shell.standard.ValueProviderSupport;
+import org.springframework.shell.table.*;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
 import java.util.List;
 
-/**
- * Example commands for the Shell 2 Standard resolver.
- *
- * @author Eric Bottard
- */
 @ShellComponent()
 public class Commands {
     private final static String NOTSET = "not set";
@@ -74,29 +70,53 @@ public class Commands {
     }
 
     @ShellMethod(value = "show current day")
-    public void day() {
-        System.out.printf("Today's total: %.2f hours\n", getDayHours(TimeUtils.today()));
+    public Table day() {
+        return computeDayTotals(TimeUtils.today(), 1);
     }
 
 
     @ShellMethod(value = "show current week days")
-    public void week(@ShellOption(defaultValue = NOTSET) String weekNo) {
-        Instant day = TimeUtils.monday(TimeUtils.today());
+    public Table week() {
+        return computeDayTotals(TimeUtils.monday(TimeUtils.today()), 7);
+    }
 
+
+    private Table computeDayTotals(Instant day, int nDays) {
         double totalHours = 0;
-        for (int i = 0; i < 7; i++) {
+
+        String[][] data = new String[nDays + 2][2];
+        data[0][0] = "Day";
+        data[0][1] = "Hours";
+        for (int i = 1; i <= nDays; i++) {
             double dayHours = getDayHours(day);
-            System.out.printf("%s total: %.2f hours\n", day, dayHours);
+            data[i][0] = TimeUtils.localDateFormat(day);
+            data[i][1] = String.format("%.2f", dayHours);
             totalHours += dayHours;
             day = TimeUtils.nextDay(day);
         }
-        System.out.printf("Week total %.2f hours\n", totalHours);
+        data[nDays + 1][0] = "All";
+        data[nDays + 1][1] = String.format("%.2f", totalHours);
+        return renderTable(data);
     }
 
-    private double getDayHours(Instant dayStart){
+    private double getDayHours(Instant dayStart) {
         return service.hoursBetween(dayStart, TimeUtils.nextDay(dayStart));
     }
 
+    private static Table renderTable(String[][] data) {
+        TableModel model = new ArrayTableModel(data);
+        TableBuilder tableBuilder = new TableBuilder(model);
+        return tableBuilder.addFullBorder(BorderStyle.fancy_light).build();
+    }
+
+    private static CellMatcher at(final int theRow, final int col) {
+        return new CellMatcher() {
+            @Override
+            public boolean matches(int row, int column, TableModel model) {
+                return row == theRow && column == col;
+            }
+        };
+    }
 /*
     @ShellMethod(value = "show current month weeks")
     public void month(@ShellOption(defaultValue = NOTSET) String monthNo) {

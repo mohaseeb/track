@@ -4,8 +4,12 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeConstants;
 import org.joda.time.Instant;
 
-public class TimeUtils {
-    public static Instant today() {
+class TimeUtils {
+    static String localDateFormat(Instant timeStamp) {
+        return timeStamp.toDateTime().toLocalDate().toString();
+    }
+
+    static Instant today() {
         DateTime todayStart = new DateTime();
         return todayStart.withHourOfDay(0)
                 .withMinuteOfHour(0)
@@ -14,11 +18,11 @@ public class TimeUtils {
                 .toInstant();
     }
 
-    public static Instant nextDay(Instant today) {
+    static Instant nextDay(Instant today) {
         return dayAfterNDays(today, 1);
     }
 
-    public static Instant monday(Instant day) {
+    static Instant monday(Instant day) {
         return toDateTime(day).withDayOfWeek(DateTimeConstants.MONDAY).toInstant();
     }
 
