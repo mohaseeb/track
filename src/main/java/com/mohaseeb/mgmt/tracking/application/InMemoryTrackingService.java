@@ -7,9 +7,10 @@ import java.util.List;
 
 public class InMemoryTrackingService implements TrackingService {
     private List<Segment> segments;
-
+    private int idTracker;
     InMemoryTrackingService() {
         segments = new ArrayList<>();
+        idTracker = 0;
     }
 
     @Override
@@ -25,13 +26,15 @@ public class InMemoryTrackingService implements TrackingService {
     }
 
     public Segment append(Segment segment){
+        segment.setId(idTracker);
+        idTracker++;
         segments.add(segment);
         return segment;
     }
 
     public Segment replaceLast(Segment segment){
         segments.remove(segments.size() - 1);
-        segments.add(segment);
-        return segment;
+        idTracker--;
+        return append(segment);
     }
 }

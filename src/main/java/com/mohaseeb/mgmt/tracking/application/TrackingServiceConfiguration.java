@@ -7,7 +7,8 @@ import org.springframework.context.annotation.Configuration;
 public class TrackingServiceConfiguration {
 
     @Bean
-    public static TrackingService create(){
-        return new InMemoryTrackingService();
+    public static TrackingService create() {
+//        return new InMemoryTrackingService();
+        return new SqliteTrackingService();
     }
 }

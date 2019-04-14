@@ -16,7 +16,6 @@ public interface TrackingService {
 
         // Store a new segment
         Segment segment = new Segment();
-        segment.setId(last == null? 0 : last.getId() + 1);
         segment.setStart(timeStamp);
         return append(segment);
     }
