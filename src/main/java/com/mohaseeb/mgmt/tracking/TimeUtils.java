@@ -9,6 +9,10 @@ class TimeUtils {
         return timeStamp.toDateTime().toLocalDate().toString();
     }
 
+    static String localDateTimeFormat(Instant timeStamp) {
+        return timeStamp.toDateTime().toLocalDateTime().toString();
+    }
+
     static Instant today() {
         DateTime todayStart = new DateTime();
         return todayStart.withHourOfDay(0)
@@ -33,5 +37,9 @@ class TimeUtils {
 
     static DateTime toDateTime(Instant instant) {
         return instant.toDateTime();
+    }
+
+    static String weekDay(Instant day) {
+        return day.toDateTime().toLocalDateTime().dayOfWeek().getAsShortText();
     }
 }

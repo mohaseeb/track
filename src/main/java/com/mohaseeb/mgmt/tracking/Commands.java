@@ -23,7 +23,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.MethodParameter;
 import org.springframework.shell.CompletionContext;
 import org.springframework.shell.CompletionProposal;
-import org.springframework.shell.Utils;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
 import org.springframework.shell.standard.ShellOption;
@@ -31,6 +30,7 @@ import org.springframework.shell.standard.ValueProviderSupport;
 import org.springframework.shell.table.*;
 import org.springframework.stereotype.Component;
 
+import java.sql.Time;
 import java.util.Collections;
 import java.util.List;
 
@@ -71,7 +71,31 @@ public class Commands {
 
     @ShellMethod(value = "show current day")
     public Table day() {
-        return computeDayTotals(TimeUtils.today(), 1);
+        Instant todayStart = TimeUtils.today();
+        Instant tomorrowStart = TimeUtils.nextDay(todayStart);
+        List<Segment> segments = service.getBetween(todayStart, tomorrowStart);
+
+        int height = segments.size();
+        int width = 3;
+        String[][] data = new String[height + 2][width];
+        data[0][0] = "Start";
+        data[0][1] = "End";
+        data[0][2] = "Minutes";
+        double total = 0;
+        for (int i = 1; i <= height; i++) {
+            Segment s = segments.get(i - 1);
+            double minutes =  s.getDuration() / (1000. * 60.);
+            total += minutes;
+            data[i][0] = TimeUtils.localDateTimeFormat(s.getStart());
+            data[i][1] = TimeUtils.localDateTimeFormat(s.getEnd());
+            data[i][2] =  String.format("%.2f", minutes);
+        }
+        data[height + 1][0] = "Total";
+        data[height + 1][1] = "";
+        data[height + 1][2] = String.format("%.2f Hours", total / 60.);
+
+
+        return renderTable(data);
     }
 
 
@@ -84,18 +108,21 @@ public class Commands {
     private Table computeDayTotals(Instant day, int nDays) {
         double totalHours = 0;
 
-        String[][] data = new String[nDays + 2][2];
+        String[][] data = new String[nDays + 2][3];
         data[0][0] = "Day";
-        data[0][1] = "Hours";
+        data[0][1] = "Date";
+        data[0][2] = "Hours";
         for (int i = 1; i <= nDays; i++) {
             double dayHours = getDayHours(day);
-            data[i][0] = TimeUtils.localDateFormat(day);
-            data[i][1] = String.format("%.2f", dayHours);
+            data[i][0] = TimeUtils.weekDay(day);
+            data[i][1] = TimeUtils.localDateFormat(day);
+            data[i][2] = String.format("%.2f", dayHours);
             totalHours += dayHours;
             day = TimeUtils.nextDay(day);
         }
         data[nDays + 1][0] = "All";
-        data[nDays + 1][1] = String.format("%.2f", totalHours);
+        data[nDays + 1][1] = "";
+        data[nDays + 1][2] = String.format("%.2f", totalHours);
         return renderTable(data);
     }
 
@@ -142,6 +169,8 @@ class CurrentTimestampProvider extends ValueProviderSupport {
 
     @Override
     public List<CompletionProposal> complete(MethodParameter parameter, CompletionContext completionContext, String[] hints) {
-        return Collections.singletonList(new CompletionProposal(Instant.now().toString()));
+        return Collections.singletonList(new CompletionProposal(
+                Instant.now().toDateTime().toLocalDateTime().toString()
+        ));
     }
 }
