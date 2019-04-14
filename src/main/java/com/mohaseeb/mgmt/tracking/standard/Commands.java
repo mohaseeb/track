@@ -18,6 +18,8 @@ package com.mohaseeb.mgmt.tracking.standard;
 
 import com.mohaseeb.mgmt.tracking.application.TrackingService;
 import com.mohaseeb.mgmt.tracking.domain.Segment;
+import org.joda.time.Instant;
+import org.joda.time.LocalDateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.MethodParameter;
 import org.springframework.shell.CompletionContext;
@@ -28,8 +30,6 @@ import org.springframework.shell.standard.ShellOption;
 import org.springframework.shell.standard.ValueProviderSupport;
 import org.springframework.stereotype.Component;
 
-import java.time.Instant;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
 
@@ -76,18 +76,21 @@ public class Commands {
     @ShellMethod(value = "show current day")
     public void day() {
         // get today start
-        Calendar calendar = Calendar.getInstance();
-        calendar.set(
-                calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DATE),
-                0, 0, 0
-        );
-        Instant todayStart = calendar.toInstant();
+        LocalDateTime todayStart = new LocalDateTime();
+        todayStart.withHourOfDay(0)
+                .withMinuteOfHour(0)
+                .withSecondOfMinute(0)
+                .withMillisOfSecond(0);
 
         // get tomorrow start
-        calendar.add(Calendar.DATE, 1);
-        Instant tomorrowStart = calendar.toInstant();
+        LocalDateTime tomorrowStart = todayStart.plusDays(1);
 
-        System.out.printf("Today's total: %.2f hours\n", service.hoursBetween(todayStart, tomorrowStart));
+
+        System.out.printf("Today's total: %.2f hours\n", service.hoursBetween(
+                todayStart.toDateTime().toInstant(),
+                tomorrowStart.toDateTime().toInstant()
+
+        ));
     }
 
     /*

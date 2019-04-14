@@ -2,9 +2,10 @@ package com.mohaseeb.mgmt.tracking.application;
 
 import com.mohaseeb.mgmt.tracking.domain.Segment;
 import com.mohaseeb.mgmt.tracking.sqlite.SegmentRepository;
+import org.joda.time.Instant;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.time.Instant;
+
 import java.util.List;
 
 public class SqliteTrackingService implements TrackingService {

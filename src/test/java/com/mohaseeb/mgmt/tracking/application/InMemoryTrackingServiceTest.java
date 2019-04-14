@@ -1,11 +1,9 @@
 package com.mohaseeb.mgmt.tracking.application;
 
 import com.mohaseeb.mgmt.tracking.domain.Segment;
+import org.joda.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.time.Instant;
-import java.util.ServiceConfigurationError;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -49,11 +47,11 @@ class InMemoryTrackingServiceTest {
         Instant ts = Instant.now();
         service.start(ts);
 
-        int elapsed = 10;
-        Instant ts2 = Instant.ofEpochSecond(ts.getEpochSecond() + elapsed);
+        int elapsedMillis = 10 * 1000;
+        Instant ts2 = Instant.ofEpochMilli(ts.getMillis() + elapsedMillis);
         Segment closedSegment = service.end(ts2);
 
-        assertEquals(elapsed, closedSegment.getDuration());
+        assertEquals(elapsedMillis, closedSegment.getDuration());
 
         // Check it is OK to open a new segment
         Segment newSegment = service.start(Instant.now());

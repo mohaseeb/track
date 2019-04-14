@@ -1,9 +1,10 @@
 package com.mohaseeb.mgmt.tracking.domain;
 
+import org.joda.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.time.Instant;
+
 
 class SegmentTest {
     Segment segmentUT;

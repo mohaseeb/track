@@ -2,13 +2,15 @@ package com.mohaseeb.mgmt.tracking.application;
 
 import com.mohaseeb.mgmt.tracking.domain.Segment;
 
-import java.time.Instant;
+import org.joda.time.Instant;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class InMemoryTrackingService implements TrackingService {
     private List<Segment> segments;
     private int idTracker;
+
     InMemoryTrackingService() {
         segments = new ArrayList<>();
         idTracker = 0;
@@ -31,14 +33,14 @@ public class InMemoryTrackingService implements TrackingService {
         return last;
     }
 
-    public Segment append(Segment segment){
+    public Segment append(Segment segment) {
         segment.setId(idTracker);
         idTracker++;
         segments.add(segment);
         return segment;
     }
 
-    public Segment replaceLast(Segment segment){
+    public Segment replaceLast(Segment segment) {
         segments.remove(segments.size() - 1);
         idTracker--;
         return append(segment);
