@@ -16,10 +16,10 @@
 
 package com.mohaseeb.mgmt.tracking.standard;
 
+import com.mohaseeb.mgmt.tracking.TimeUtils;
 import com.mohaseeb.mgmt.tracking.application.TrackingService;
 import com.mohaseeb.mgmt.tracking.domain.Segment;
 import org.joda.time.Instant;
-import org.joda.time.LocalDateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.MethodParameter;
 import org.springframework.shell.CompletionContext;
@@ -75,31 +75,29 @@ public class Commands {
 
     @ShellMethod(value = "show current day")
     public void day() {
-        // get today start
-        LocalDateTime todayStart = new LocalDateTime();
-        todayStart.withHourOfDay(0)
-                .withMinuteOfHour(0)
-                .withSecondOfMinute(0)
-                .withMillisOfSecond(0);
-
-        // get tomorrow start
-        LocalDateTime tomorrowStart = todayStart.plusDays(1);
-
-
-        System.out.printf("Today's total: %.2f hours\n", service.hoursBetween(
-                todayStart.toDateTime().toInstant(),
-                tomorrowStart.toDateTime().toInstant()
-
-        ));
+        System.out.printf("Today's total: %.2f hours\n", getDayHours(TimeUtils.today()));
     }
 
-    /*
+
     @ShellMethod(value = "show current week days")
     public void week(@ShellOption(defaultValue = NOTSET) String weekNo) {
-        System.out.println("close the last open episode");
+        Instant day = TimeUtils.monday(TimeUtils.today());
+
+        double totalHours = 0;
+        for (int i = 0; i < 7; i++) {
+            double dayHours = getDayHours(day);
+            System.out.printf("%s total: %.2f hours\n", day, dayHours);
+            totalHours += dayHours;
+            day = TimeUtils.nextDay(day);
+        }
+        System.out.printf("Week total %.2f hours\n", totalHours);
     }
 
+    private double getDayHours(Instant dayStart){
+        return service.hoursBetween(dayStart, TimeUtils.nextDay(dayStart));
+    }
 
+/*
     @ShellMethod(value = "show current month weeks")
     public void month(@ShellOption(defaultValue = NOTSET) String monthNo) {
         System.out.println("close the last open episode");
