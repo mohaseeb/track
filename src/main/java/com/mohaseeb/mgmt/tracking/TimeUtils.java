@@ -30,6 +30,10 @@ class TimeUtils {
         return toDateTime(day).withDayOfWeek(DateTimeConstants.MONDAY).toInstant();
     }
 
+    static Instant firstDayOfMonth() {
+        return today().toDateTime().withDayOfMonth(1).toInstant();
+    }
+
     static Instant dayAfterNDays(Instant day, int nDays) {
         DateTime dateTime = toDateTime(day);
         return dateTime.plusDays(nDays).toInstant();

@@ -70,7 +70,7 @@ public class Commands {
     }
 
     @ShellMethod(value = "show current day")
-    public Table day() {
+    public Table today() {
         Instant todayStart = TimeUtils.today();
         Instant tomorrowStart = TimeUtils.nextDay(todayStart);
         List<Segment> segments = service.getBetween(todayStart, tomorrowStart);
@@ -84,11 +84,11 @@ public class Commands {
         double total = 0;
         for (int i = 1; i <= height; i++) {
             Segment s = segments.get(i - 1);
-            double minutes =  s.getDuration() / (1000. * 60.);
+            double minutes = s.getDuration() / (1000. * 60.);
             total += minutes;
             data[i][0] = TimeUtils.localDateTimeFormat(s.getStart());
             data[i][1] = TimeUtils.localDateTimeFormat(s.getEnd());
-            data[i][2] =  String.format("%.2f", minutes);
+            data[i][2] = String.format("%.2f", minutes);
         }
         data[height + 1][0] = "Total";
         data[height + 1][1] = "";
@@ -104,6 +104,19 @@ public class Commands {
         return computeDayTotals(TimeUtils.monday(TimeUtils.today()), 7);
     }
 
+
+    @ShellMethod(value = "show current month days")
+    public Table month() {
+        return computeDayTotals(TimeUtils.firstDayOfMonth(), 31);
+    }
+
+    @ShellMethod(value = "show n days starting from specific day")
+    public Table days(
+            @ShellOption(valueProvider = CurrentDateProvider.class) String from,
+            @ShellOption(defaultValue = "30") int nDays
+    ) {
+        return computeDayTotals(parseInstant(from), nDays);
+    }
 
     private Table computeDayTotals(Instant day, int nDays) {
         double totalHours = 0;
@@ -158,12 +171,7 @@ public class Commands {
 */
 }
 
-/**
- * A {@link org.springframework.shell.standard.ValueProvider} that emits values with special characters
- * (quotes, escapes, <em>etc.</em>)
- *
- * @author Eric Bottard
- */
+
 @Component
 class CurrentTimestampProvider extends ValueProviderSupport {
 
@@ -171,6 +179,18 @@ class CurrentTimestampProvider extends ValueProviderSupport {
     public List<CompletionProposal> complete(MethodParameter parameter, CompletionContext completionContext, String[] hints) {
         return Collections.singletonList(new CompletionProposal(
                 Instant.now().toDateTime().toLocalDateTime().toString()
+        ));
+    }
+}
+
+
+@Component
+class CurrentDateProvider extends ValueProviderSupport {
+
+    @Override
+    public List<CompletionProposal> complete(MethodParameter parameter, CompletionContext completionContext, String[] hints) {
+        return Collections.singletonList(new CompletionProposal(
+                Instant.now().toDateTime().toLocalDate().toString()
         ));
     }
 }
