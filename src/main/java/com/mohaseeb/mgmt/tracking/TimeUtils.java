@@ -6,11 +6,11 @@ import org.joda.time.Instant;
 
 class TimeUtils {
     static String localDateFormat(Instant timeStamp) {
-        return timeStamp.toDateTime().toLocalDate().toString();
+        return timeStamp == null ? "" : timeStamp.toDateTime().toLocalDate().toString();
     }
 
     static String localDateTimeFormat(Instant timeStamp) {
-        return timeStamp.toDateTime().toLocalDateTime().toString();
+        return timeStamp == null ? "" : timeStamp.toDateTime().toLocalDateTime().toString();
     }
 
     static Instant today() {
