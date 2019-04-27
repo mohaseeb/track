@@ -23,6 +23,8 @@ public class Segment {
     private Instant end;
     @Column
     private long duration;
+    @Column
+    private String notes;
 
     public boolean isOpen() {
         return end == null;

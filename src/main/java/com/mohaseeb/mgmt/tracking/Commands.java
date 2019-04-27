@@ -30,7 +30,7 @@ import org.springframework.shell.standard.ValueProviderSupport;
 import org.springframework.shell.table.*;
 import org.springframework.stereotype.Component;
 
-import java.sql.Time;
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 
@@ -42,14 +42,20 @@ public class Commands {
     private TrackingService service;
 
     @ShellMethod(value = "Starts a an episode")
-    public void start(@ShellOption(valueProvider = CurrentTimestampProvider.class) String when) {
-        Segment segment = service.start(parseInstant(when));
+    public void start(
+            @ShellOption(valueProvider = CurrentTimestampProvider.class) String when,
+            @ShellOption() String note
+    ) {
+        Segment segment = service.start(parseInstant(when), note);
         System.out.println("Started: \n" + segment);
     }
 
     @ShellMethod(value = "Ends the last episode")
-    public void end(@ShellOption(valueProvider = CurrentTimestampProvider.class) String when) {
-        Segment segment = service.end(parseInstant(when));
+    public void end(
+            @ShellOption(valueProvider = CurrentTimestampProvider.class) String when,
+            @ShellOption() String note
+    ) {
+        Segment segment = service.end(parseInstant(when), note);
         System.out.println("Ended: \n" + segment);
     }
 
@@ -76,11 +82,12 @@ public class Commands {
         List<Segment> segments = service.getBetween(todayStart, tomorrowStart);
 
         int height = segments.size();
-        int width = 3;
+        int width = 4;
         String[][] data = new String[height + 2][width];
         data[0][0] = "Start";
         data[0][1] = "End";
         data[0][2] = "Minutes";
+        data[0][3] = "Notes";
         double total = 0;
         for (int i = 1; i <= height; i++) {
             Segment s = segments.get(i - 1);
@@ -89,6 +96,7 @@ public class Commands {
             data[i][0] = TimeUtils.localDateTimeFormat(s.getStart());
             data[i][1] = TimeUtils.localDateTimeFormat(s.getEnd());
             data[i][2] = String.format("%.2f", minutes);
+            data[i][3] = s.getNotes();
         }
         data[height + 1][0] = "Total";
         data[height + 1][1] = "";
@@ -121,15 +129,19 @@ public class Commands {
     private Table computeDayTotals(Instant day, int nDays) {
         double totalHours = 0;
 
-        String[][] data = new String[nDays + 2][3];
+        String[][] data = new String[nDays + 2][4];
         data[0][0] = "Day";
         data[0][1] = "Date";
         data[0][2] = "Hours";
+        data[0][3] = "Notes";
         for (int i = 1; i <= nDays; i++) {
-            double dayHours = getDayHours(day);
+            List<Serializable> daySummary = getDaySummary(day);
+            double dayHours = (double) daySummary.get(0);
+            String notes = (String) daySummary.get(1);
             data[i][0] = TimeUtils.weekDay(day);
             data[i][1] = TimeUtils.localDateFormat(day);
             data[i][2] = String.format("%.2f", dayHours);
+            data[i][3] = notes;
             totalHours += dayHours;
             day = TimeUtils.nextDay(day);
         }
@@ -139,8 +151,8 @@ public class Commands {
         return renderTable(data);
     }
 
-    private double getDayHours(Instant dayStart) {
-        return service.hoursBetween(dayStart, TimeUtils.nextDay(dayStart));
+    private List<Serializable> getDaySummary(Instant dayStart) {
+        return service.summaryBetween(dayStart, TimeUtils.nextDay(dayStart));
     }
 
     private static Table renderTable(String[][] data) {
@@ -148,27 +160,6 @@ public class Commands {
         TableBuilder tableBuilder = new TableBuilder(model);
         return tableBuilder.addFullBorder(BorderStyle.fancy_light).build();
     }
-
-    private static CellMatcher at(final int theRow, final int col) {
-        return new CellMatcher() {
-            @Override
-            public boolean matches(int row, int column, TableModel model) {
-                return row == theRow && column == col;
-            }
-        };
-    }
-/*
-    @ShellMethod(value = "show current month weeks")
-    public void month(@ShellOption(defaultValue = NOTSET) String monthNo) {
-        System.out.println("close the last open episode");
-    }
-
-    @ShellMethod(value = "show current months")
-    public void year(@ShellOption(defaultValue = NOTSET) String yearNo) {
-        System.out.println("close the last open episode");
-    }
-
-*/
 }
 
 

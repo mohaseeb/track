@@ -23,7 +23,7 @@ class InMemoryTrackingServiceTest {
     @Test
     void testStart() {
         Instant ts = Instant.now();
-        Segment segment = service.start(ts);
+        Segment segment = service.start(ts, "");
 
         assertEquals(0, segment.getId());
         assertEquals(ts, segment.getStart());
@@ -34,44 +34,44 @@ class InMemoryTrackingServiceTest {
     @Test
     void testStartOpenSegment() {
         Instant ts = Instant.now();
-        Segment segment = service.start(ts);
+        Segment segment = service.start(ts, "");
         assertEquals(0, segment.getId());
 
         // Add a second segment before closing the first one
-        assertThrows(IllegalStateException.class, () -> service.start(Instant.now()));
+        assertThrows(IllegalStateException.class, () -> service.start(Instant.now(), ""));
     }
 
 
     @Test
     void end() {
         Instant ts = Instant.now();
-        service.start(ts);
+        service.start(ts, "");
 
         int elapsedMillis = 10 * 1000;
         Instant ts2 = Instant.ofEpochMilli(ts.getMillis() + elapsedMillis);
-        Segment closedSegment = service.end(ts2);
+        Segment closedSegment = service.end(ts2, "");
 
         assertEquals(elapsedMillis, closedSegment.getDuration());
 
         // Check it is OK to open a new segment
-        Segment newSegment = service.start(Instant.now());
+        Segment newSegment = service.start(Instant.now(), "");
         assertNotNull(newSegment.getStart());
         assertNull(newSegment.getEnd());
         assertEquals(2, service.getAll().size());
     }
 
     @Test
-    void endZeroSegments(){
-        assertThrows(IllegalStateException.class, () -> service.end(Instant.now()));
+    void endZeroSegments() {
+        assertThrows(IllegalStateException.class, () -> service.end(Instant.now(), ""));
     }
 
     @Test
-    void endClosedSegment(){
-        service.start(Instant.now());
-        Segment closed = service.end(Instant.now());
+    void endClosedSegment() {
+        service.start(Instant.now(), "");
+        Segment closed = service.end(Instant.now(), "");
         assertEquals(1, service.getAll().size());
         assertNotNull(closed.getEnd());
 
-        assertThrows(IllegalStateException.class, () -> service.end(Instant.now()));
+        assertThrows(IllegalStateException.class, () -> service.end(Instant.now(), ""));
     }
 }
