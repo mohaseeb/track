@@ -22,7 +22,7 @@ public interface TrackingService {
         // Store a new segment
         Segment segment = new Segment();
         segment.setStart(timeStamp);
-        segment.setNotes(note);
+        if (note != null) segment.setNotes(note);
         return append(segment);
     }
 
@@ -35,7 +35,7 @@ public interface TrackingService {
         // update last segment
         last.setEnd(timeStamp);
         last.setDuration(last.getEnd().getMillis() - last.getStart().getMillis());
-        last.setNotes(note.length() > 0 ? last.getNotes() + " | " + note : last.getNotes());
+        last.setNotes(note != null ? last.getNotes() + " | " + note : last.getNotes());
         return replaceLast(last);
     }
 

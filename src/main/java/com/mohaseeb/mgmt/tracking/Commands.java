@@ -44,18 +44,18 @@ public class Commands {
     @ShellMethod(value = "Starts a an episode")
     public void start(
             @ShellOption(valueProvider = CurrentTimestampProvider.class) String when,
-            @ShellOption() String note
+            @ShellOption(defaultValue=NOTSET) String note
     ) {
-        Segment segment = service.start(parseInstant(when), note);
+        Segment segment = service.start(parseInstant(when), note.equals(NOTSET) ? null : note);
         System.out.println("Started: \n" + segment);
     }
 
     @ShellMethod(value = "Ends the last episode")
     public void end(
             @ShellOption(valueProvider = CurrentTimestampProvider.class) String when,
-            @ShellOption() String note
+            @ShellOption(defaultValue=NOTSET) String note
     ) {
-        Segment segment = service.end(parseInstant(when), note);
+        Segment segment = service.end(parseInstant(when), note.equals(NOTSET) ? null : note);
         System.out.println("Ended: \n" + segment);
     }
 
