@@ -1,15 +1,16 @@
 package com.mohaseeb.mgmt.tracking;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeConstants;
-import org.joda.time.Instant;
+import org.joda.time.*;
 
-class TimeUtils {
-    static String localDateFormat(Instant timeStamp) {
+import java.util.Arrays;
+import java.util.List;
+
+public class TimeUtils {
+    public static String localDateFormat(Instant timeStamp) {
         return timeStamp == null ? "" : timeStamp.toDateTime().toLocalDate().toString();
     }
 
-    static String localDateTimeFormat(Instant timeStamp) {
+    public static String localDateTimeFormat(Instant timeStamp) {
         return timeStamp == null ? "" : timeStamp.toDateTime().toLocalDateTime().toString();
     }
 
@@ -45,5 +46,19 @@ class TimeUtils {
 
     static String weekDay(Instant day) {
         return day.toDateTime().toLocalDateTime().dayOfWeek().getAsShortText();
+    }
+
+    public static List<Instant> thisAndNextMonthStarts(int month) {
+        if (month < 1 || month > 12) throw new IllegalArgumentException("month be in {1..12}");
+        LocalDate thisMonthStart = new LocalDate(currentYear(), month, 1);
+        LocalDate nextMonthStart = thisMonthStart.plusMonths(1);
+        return Arrays.asList(
+                thisMonthStart.toDateTime(LocalTime.MIDNIGHT).toInstant(),
+                nextMonthStart.toDateTime(LocalTime.MIDNIGHT).toInstant()
+        );
+    }
+
+    private static int currentYear() {
+        return LocalDate.now().getYear();
     }
 }

@@ -14,6 +14,8 @@ public class SqliteConfiguration {
         DataSourceBuilder dataSourceBuilder = DataSourceBuilder.create();
         dataSourceBuilder.driverClassName("org.sqlite.JDBC");
         String dbPath = System.getProperty("user.home") + "/.track_sqlite.db";
+
+        // sqlite3 -header -csv "$HOME/.track_sqlite.db" "select * from segment;" > segments_20190512.csv
         dataSourceBuilder.url("jdbc:sqlite:" + dbPath);
         return dataSourceBuilder.build();
     }

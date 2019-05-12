@@ -30,6 +30,7 @@ import org.springframework.shell.standard.ValueProviderSupport;
 import org.springframework.shell.table.*;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
@@ -44,7 +45,7 @@ public class Commands {
     @ShellMethod(value = "Starts a an episode")
     public void start(
             @ShellOption(valueProvider = CurrentTimestampProvider.class) String when,
-            @ShellOption(defaultValue=NOTSET) String note
+            @ShellOption(defaultValue = NOTSET) String note
     ) {
         Segment segment = service.start(parseInstant(when), note.equals(NOTSET) ? null : note);
         System.out.println("Started: \n" + segment);
@@ -53,7 +54,7 @@ public class Commands {
     @ShellMethod(value = "Ends the last episode")
     public void end(
             @ShellOption(valueProvider = CurrentTimestampProvider.class) String when,
-            @ShellOption(defaultValue=NOTSET) String note
+            @ShellOption(defaultValue = NOTSET) String note
     ) {
         Segment segment = service.end(parseInstant(when), note.equals(NOTSET) ? null : note);
         System.out.println("Ended: \n" + segment);
@@ -74,6 +75,32 @@ public class Commands {
             System.out.println(segment);
         }
     }
+
+    @ShellMethod(value = "Export segments to CSV")
+    public void csv(
+            @ShellOption(defaultValue = NOTSET) String month,
+            @ShellOption(defaultValue = NOTSET) String path
+    ) throws IOException {
+        int monthNum = month.equals(NOTSET) ?
+                -1 :
+                Integer.valueOf(month);
+        path = path.equals(NOTSET) ?
+                String.format("/tmp/segments_%s_%s.csv", monthNum, TimeUtils.localDateTimeFormat(Instant.now())) :
+                path;
+
+        List<Segment> segments;
+        if (monthNum == -1) {
+            segments = service.getAll();
+            System.out.println("exporting all time segments");
+        } else {
+            List<Instant> thisAndNextMonth = TimeUtils.thisAndNextMonthStarts(monthNum);
+            segments = service.getBetween(thisAndNextMonth.get(0), thisAndNextMonth.get(1));
+        }
+
+        CsvWriter.write(segments, path);
+        System.out.printf("written to: %s\n", path);
+    }
+
 
     @ShellMethod(value = "show current day")
     public Table today() {
