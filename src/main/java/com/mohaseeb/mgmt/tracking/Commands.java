@@ -102,11 +102,19 @@ public class Commands {
     }
 
 
+    @ShellMethod(value = "show day")
+    public Table day(@ShellOption(valueProvider = CurrentDateProvider.class) String day) {
+        return showDaySegments(parseInstant(day));
+    }
+
     @ShellMethod(value = "show current day")
     public Table today() {
-        Instant todayStart = TimeUtils.today();
-        Instant tomorrowStart = TimeUtils.nextDay(todayStart);
-        List<Segment> segments = service.getBetween(todayStart, tomorrowStart);
+        return showDaySegments(TimeUtils.today());
+    }
+
+    private Table showDaySegments(Instant day) {
+        Instant tomorrowStart = TimeUtils.nextDay(day);
+        List<Segment> segments = service.getBetween(day, tomorrowStart);
 
         int height = segments.size();
         int width = 4;
@@ -131,12 +139,14 @@ public class Commands {
 
 
         return renderTable(data);
+
     }
 
 
     @ShellMethod(value = "show current week days")
-    public Table week() {
-        return computeDayTotals(TimeUtils.monday(TimeUtils.today()), 7);
+    public Table week(@ShellOption(valueProvider = CurrentDateProvider.class) String dayInWeek) {
+        Instant day = TimeUtils.monday(parseInstant(dayInWeek));
+        return computeDayTotals(day, 7);
     }
 
 
