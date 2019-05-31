@@ -11,6 +11,17 @@
     <description>Keep track of time segments</description>
 
 
+    <repositories>
+      <repository>
+        <id>spring-snapshots</id>
+        <name>Spring Snapshots</name>
+        <url>https://repo.spring.io/libs-snapshot</url>
+        <snapshots>
+            <enabled>true</enabled>
+        </snapshots>
+      </repository>
+    </repositories>
+
     <parent>
         <groupId>org.springframework.shell</groupId>
         <artifactId>spring-shell-parent</artifactId>
