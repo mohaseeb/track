@@ -151,8 +151,17 @@ public class Commands {
 
 
     @ShellMethod(value = "show current month days")
-    public Table month() {
-        return computeDayTotals(TimeUtils.firstDayOfMonth(), 31);
+    public Table month(@ShellOption(defaultValue = NOTSET) String month) {
+        Instant firstDayOfMonth;
+        if (month.equals(NOTSET)) firstDayOfMonth = TimeUtils.firstDayOfMonth();
+        else firstDayOfMonth = TimeUtils.firstDayOfMonth(Integer.valueOf(month));
+
+        int monthDays = TimeUtils.monthDays(
+                firstDayOfMonth.toDateTime().getYear(),
+                firstDayOfMonth.toDateTime().getMonthOfYear()
+        );
+
+        return computeDayTotals(firstDayOfMonth, monthDays);
     }
 
     @ShellMethod(value = "show n days starting from specific day")

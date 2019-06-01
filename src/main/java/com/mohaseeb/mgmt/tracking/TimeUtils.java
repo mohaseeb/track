@@ -35,6 +35,14 @@ public class TimeUtils {
         return today().toDateTime().withDayOfMonth(1).toInstant();
     }
 
+    static Instant firstDayOfMonth(int month) {
+        return today().toDateTime().withMonthOfYear(month).withDayOfMonth(1).toInstant();
+    }
+
+    static int monthDays(int year, int month){
+        return java.time.YearMonth.of(year, month).lengthOfMonth();
+    }
+
     static Instant dayAfterNDays(Instant day, int nDays) {
         DateTime dateTime = toDateTime(day);
         return dateTime.plusDays(nDays).toInstant();
