@@ -18,6 +18,8 @@ package com.mohaseeb.mgmt.tracking;
 
 import com.mohaseeb.mgmt.tracking.application.TrackingService;
 import com.mohaseeb.mgmt.tracking.domain.Segment;
+import java.util.HashMap;
+import java.util.Map;
 import org.joda.time.Instant;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.MethodParameter;
@@ -142,6 +144,79 @@ public class Commands {
 
     }
 
+    @ShellMethod(value = "show day")
+    public Table cday(@ShellOption(valueProvider = CurrentDateProvider.class) String day) {
+        return showDaySegmentsConcise(parseInstant(day));
+    }
+
+    @ShellMethod(value = "show current day")
+    public Table ctoday() {
+        return showDaySegmentsConcise(TimeUtils.today());
+    }
+
+    private Table showDaySegmentsConcise(Instant day) {
+        try {
+            Instant tomorrowStart = TimeUtils.nextDay(day);
+            List<Segment> segments = service.getBetween(day, tomorrowStart);
+
+            Map<String, Segment> groupedSegments = new HashMap<>();
+
+            for (Segment segment : segments) {
+                String segmentNote = segment.getNotes();
+                Segment noteSegment = groupedSegments.get(segmentNote);
+                if (noteSegment == null) {
+                    noteSegment = new Segment();
+                    noteSegment.setNotes(segmentNote);
+                    noteSegment.setStart(segment.getStart());
+                    noteSegment.setEnd(segment.getEnd());
+                    noteSegment.setDuration(segment.getDuration());
+                    groupedSegments.put(segmentNote, noteSegment);
+                } else {
+                    noteSegment.setDuration(
+                        noteSegment.getDuration() + segment.getDuration()
+                    );
+                    noteSegment.setStart(
+                        noteSegment.getStart().isBefore(segment.getStart()) ?
+                            noteSegment.getStart() :
+                            segment.getStart()
+                    );
+                    noteSegment.setEnd(
+                        noteSegment.getEnd().isAfter(segment.getEnd()) ?
+                            noteSegment.getEnd() :
+                            segment.getEnd()
+                    );
+                }
+            }
+
+            int height = groupedSegments.size();
+            Object[] groupNames =  groupedSegments.keySet().toArray();
+            int width = 4;
+            String[][] data = new String[height + 2][width];
+            data[0][0] = "Earliest start";
+            data[0][1] = "Latest end";
+            data[0][2] = "Minutes";
+            data[0][3] = "Notes";
+            double total = 0;
+            for (int i = 1; i <= height; i++) {
+                Segment s = groupedSegments.get((String) groupNames[i - 1]);
+                double minutes = s.getDuration() / (1000. * 60.);
+                total += minutes;
+                data[i][0] = TimeUtils.localDateTimeFormat(s.getStart());
+                data[i][1] = TimeUtils.localDateTimeFormat(s.getEnd());
+                data[i][2] = String.format("%.2f", minutes);
+                data[i][3] = s.getNotes();
+            }
+            data[height + 1][0] = "Total";
+            data[height + 1][1] = "";
+            data[height + 1][2] = String.format("%.2f Hours", total / 60.);
+
+            return renderTable(data);
+        } catch (Throwable e) {
+
+          e.printStackTrace();
+        }
+        return null;
+    }
 
     @ShellMethod(value = "show current week days")
     public Table week(@ShellOption(valueProvider = CurrentDateProvider.class) String dayInWeek) {
