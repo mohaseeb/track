@@ -74,6 +74,8 @@ public interface TrackingService {
     Segment append(Segment segment);
 
     Segment replaceLast(Segment segment);
+
+    Segment delete(int segmentId);
 }
 
 interface FromLong {

@@ -46,7 +46,7 @@ public class Commands {
     @Autowired
     private TrackingService service;
 
-    @ShellMethod(value = "Starts a an episode")
+    @ShellMethod(value = "Starts a an segment")
     public void start(
             @ShellOption(valueProvider = CurrentTimestampProvider.class) String when,
             @ShellOption(defaultValue = NOTSET) String note,
@@ -59,7 +59,7 @@ public class Commands {
         System.out.println("Started: \n" + segment);
     }
 
-    @ShellMethod(value = "Ends the last episode")
+    @ShellMethod(value = "Ends the last segment")
     public void end(
             @ShellOption(valueProvider = CurrentTimestampProvider.class) String when,
             @ShellOption(defaultValue = NOTSET) String note
@@ -68,6 +68,11 @@ public class Commands {
         System.out.println("Ended: \n" + segment);
     }
 
+    @ShellMethod(value = "Delete a segment by Id")
+    public void delete(String id) {
+        Segment segment = service.delete(Integer.parseInt(id));
+        System.out.println("Deleted: \n" + segment);
+    }
     private Instant parseInstant(String instantStr) {
         return instantStr.equals(NOTSET) ? Instant.now() : Instant.parse(instantStr);
     }
@@ -125,13 +130,14 @@ public class Commands {
         List<Segment> segments = service.getBetween(day, tomorrowStart);
 
         int height = segments.size();
-        int width = 5;
+        int width = 6;
         String[][] data = new String[height + 2][width];
-        data[0][0] = "Start";
-        data[0][1] = "End";
-        data[0][2] = "Minutes";
-        data[0][3] = "Absent";
-        data[0][4] = "Notes";
+        data[0][0] = "Id";
+        data[0][1] = "Start";
+        data[0][2] = "End";
+        data[0][3] = "Minutes";
+        data[0][4] = "Absent";
+        data[0][5] = "Notes";
         double workingHours = 0;
         double absentHours = 0;
         for (int i = 1; i <= height; i++) {
@@ -142,15 +148,16 @@ public class Commands {
             } else {
                 absentHours += minutes / 60;
             }
-            data[i][0] = TimeUtils.localDateTimeFormat(s.getStart());
-            data[i][1] = TimeUtils.localDateTimeFormat(s.getEnd());
-            data[i][2] = String.format("%.2f", minutes);
-            data[i][3] = String.format("%s", s.getAbsent() == 1 ? "X" : " ");
-            data[i][4] = s.getNotes();
+            data[i][0] = String.format("%s", s.getId());
+            data[i][1] = TimeUtils.localDateTimeFormat(s.getStart());
+            data[i][2] = TimeUtils.localDateTimeFormat(s.getEnd());
+            data[i][3] = String.format("%.2f", minutes);
+            data[i][4] = String.format("%s", s.getAbsent() == 1 ? "X" : "");
+            data[i][5] = s.getNotes();
         }
         data[height + 1][0] = "Total";
-        data[height + 1][1] = "";
-        data[height + 1][2] = String.format(
+        data[height + 1][2] = "";
+        data[height + 1][3] = String.format(
                 "working: %.2f, absent: %.2f, total: %.2f Hours",
                 workingHours, absentHours,
                 workingHours + absentHours);

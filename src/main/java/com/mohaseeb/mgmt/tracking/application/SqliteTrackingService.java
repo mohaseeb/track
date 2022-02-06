@@ -37,4 +37,20 @@ public class SqliteTrackingService implements TrackingService {
     public Segment replaceLast(Segment segment) {
         return repository.save(segment);
     }
+
+    @Override
+    public Segment delete(int segmentId) {
+        Segment segment = this.findById(segmentId);
+        this.delete(segment);
+        return segment;
+    }
+
+    public void delete(Segment segment) {
+        this.repository.delete(segment);
+    }
+
+    public Segment findById(int segmentId) {
+        return this.getAll().stream().filter(s -> s.getId() == segmentId).findFirst().orElseThrow();
+    }
+
 }

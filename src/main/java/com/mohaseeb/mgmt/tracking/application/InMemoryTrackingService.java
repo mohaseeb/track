@@ -2,6 +2,7 @@ package com.mohaseeb.mgmt.tracking.application;
 
 import com.mohaseeb.mgmt.tracking.domain.Segment;
 
+import org.hibernate.cfg.NotYetImplementedException;
 import org.joda.time.Instant;
 
 import java.util.ArrayList;
@@ -44,5 +45,10 @@ public class InMemoryTrackingService implements TrackingService {
         segments.remove(segments.size() - 1);
         idTracker--;
         return append(segment);
+    }
+
+    @Override
+    public Segment delete(int segmentId) {
+        throw new NotYetImplementedException("yep");
     }
 }
