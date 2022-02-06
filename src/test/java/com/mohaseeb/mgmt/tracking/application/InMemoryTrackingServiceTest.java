@@ -23,7 +23,7 @@ class InMemoryTrackingServiceTest {
     @Test
     void testStart() {
         Instant ts = Instant.now();
-        Segment segment = service.start(ts, "");
+        Segment segment = service.start(ts, false, "");
 
         assertEquals(0, segment.getId());
         assertEquals(ts, segment.getStart());
@@ -34,18 +34,18 @@ class InMemoryTrackingServiceTest {
     @Test
     void testStartOpenSegment() {
         Instant ts = Instant.now();
-        Segment segment = service.start(ts, "");
+        Segment segment = service.start(ts, false, "");
         assertEquals(0, segment.getId());
 
         // Add a second segment before closing the first one
-        assertThrows(IllegalStateException.class, () -> service.start(Instant.now(), ""));
+        assertThrows(IllegalStateException.class, () -> service.start(Instant.now(), false, ""));
     }
 
 
     @Test
     void end() {
         Instant ts = Instant.now();
-        service.start(ts, "");
+        service.start(ts, false, "");
 
         int elapsedMillis = 10 * 1000;
         Instant ts2 = Instant.ofEpochMilli(ts.getMillis() + elapsedMillis);
@@ -54,7 +54,7 @@ class InMemoryTrackingServiceTest {
         assertEquals(elapsedMillis, closedSegment.getDuration());
 
         // Check it is OK to open a new segment
-        Segment newSegment = service.start(Instant.now(), "");
+        Segment newSegment = service.start(Instant.now(), false, "");
         assertNotNull(newSegment.getStart());
         assertNull(newSegment.getEnd());
         assertEquals(2, service.getAll().size());
@@ -67,7 +67,7 @@ class InMemoryTrackingServiceTest {
 
     @Test
     void endClosedSegment() {
-        service.start(Instant.now(), "");
+        service.start(Instant.now(), false, "");
         Segment closed = service.end(Instant.now(), "");
         assertEquals(1, service.getAll().size());
         assertNotNull(closed.getEnd());

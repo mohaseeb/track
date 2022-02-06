@@ -18,8 +18,10 @@ package com.mohaseeb.mgmt.tracking;
 
 import com.mohaseeb.mgmt.tracking.application.TrackingService;
 import com.mohaseeb.mgmt.tracking.domain.Segment;
+
 import java.util.HashMap;
 import java.util.Map;
+
 import org.joda.time.Instant;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.MethodParameter;
@@ -47,9 +49,13 @@ public class Commands {
     @ShellMethod(value = "Starts a an episode")
     public void start(
             @ShellOption(valueProvider = CurrentTimestampProvider.class) String when,
-            @ShellOption(defaultValue = NOTSET) String note
+            @ShellOption(defaultValue = NOTSET) String note,
+            @ShellOption(defaultValue = "0") String absent
     ) {
-        Segment segment = service.start(parseInstant(when), note.equals(NOTSET) ? null : note);
+        Segment segment = service.start(
+                parseInstant(when),
+                absent.equals("1"),
+                note.equals(NOTSET) ? null : note);
         System.out.println("Started: \n" + segment);
     }
 
@@ -119,29 +125,36 @@ public class Commands {
         List<Segment> segments = service.getBetween(day, tomorrowStart);
 
         int height = segments.size();
-        int width = 4;
+        int width = 5;
         String[][] data = new String[height + 2][width];
         data[0][0] = "Start";
         data[0][1] = "End";
         data[0][2] = "Minutes";
-        data[0][3] = "Notes";
-        double total = 0;
+        data[0][3] = "Absent";
+        data[0][4] = "Notes";
+        double workingHours = 0;
+        double absentHours = 0;
         for (int i = 1; i <= height; i++) {
             Segment s = segments.get(i - 1);
             double minutes = s.getDuration() / (1000. * 60.);
-            total += minutes;
+            if (s.getAbsent() == 0) {
+                workingHours += minutes / 60;
+            } else {
+                absentHours += minutes / 60;
+            }
             data[i][0] = TimeUtils.localDateTimeFormat(s.getStart());
             data[i][1] = TimeUtils.localDateTimeFormat(s.getEnd());
             data[i][2] = String.format("%.2f", minutes);
-            data[i][3] = s.getNotes();
+            data[i][3] = String.format("%s", s.getAbsent() == 1 ? "X" : " ");
+            data[i][4] = s.getNotes();
         }
         data[height + 1][0] = "Total";
         data[height + 1][1] = "";
-        data[height + 1][2] = String.format("%.2f Hours", total / 60.);
-
-
+        data[height + 1][2] = String.format(
+                "working: %.2f, absent: %.2f, total: %.2f Hours",
+                workingHours, absentHours,
+                workingHours + absentHours);
         return renderTable(data);
-
     }
 
     @ShellMethod(value = "show day")
@@ -173,29 +186,30 @@ public class Commands {
                     groupedSegments.put(segmentNote, noteSegment);
                 } else {
                     noteSegment.setDuration(
-                        noteSegment.getDuration() + segment.getDuration()
+                            noteSegment.getDuration() + segment.getDuration()
                     );
                     noteSegment.setStart(
-                        noteSegment.getStart().isBefore(segment.getStart()) ?
-                            noteSegment.getStart() :
-                            segment.getStart()
+                            noteSegment.getStart().isBefore(segment.getStart()) ?
+                                    noteSegment.getStart() :
+                                    segment.getStart()
                     );
                     noteSegment.setEnd(
-                        noteSegment.getEnd().isAfter(segment.getEnd()) ?
-                            noteSegment.getEnd() :
-                            segment.getEnd()
+                            noteSegment.getEnd().isAfter(segment.getEnd()) ?
+                                    noteSegment.getEnd() :
+                                    segment.getEnd()
                     );
                 }
             }
 
             int height = groupedSegments.size();
-            Object[] groupNames =  groupedSegments.keySet().toArray();
-            int width = 4;
+            Object[] groupNames = groupedSegments.keySet().toArray();
+            int width = 5;
             String[][] data = new String[height + 2][width];
             data[0][0] = "Earliest start";
             data[0][1] = "Latest end";
             data[0][2] = "Minutes";
-            data[0][3] = "Notes";
+            data[0][3] = "Absent";
+            data[0][4] = "Notes";
             double total = 0;
             for (int i = 1; i <= height; i++) {
                 Segment s = groupedSegments.get((String) groupNames[i - 1]);
@@ -204,7 +218,8 @@ public class Commands {
                 data[i][0] = TimeUtils.localDateTimeFormat(s.getStart());
                 data[i][1] = TimeUtils.localDateTimeFormat(s.getEnd());
                 data[i][2] = String.format("%.2f", minutes);
-                data[i][3] = s.getNotes();
+                data[i][3] = String.format("%s", s.getAbsent() == 1 ? "X" : " ");
+                data[i][4] = s.getNotes();
             }
             data[height + 1][0] = "Total";
             data[height + 1][1] = "";
@@ -213,7 +228,7 @@ public class Commands {
             return renderTable(data);
         } catch (Throwable e) {
 
-          e.printStackTrace();
+            e.printStackTrace();
         }
         return null;
     }
@@ -248,27 +263,37 @@ public class Commands {
     }
 
     private Table computeDayTotals(Instant day, int nDays) {
-        double totalHours = 0;
+        double workingHoursTotal = 0;
+        double absentHoursTotal = 0;
 
-        String[][] data = new String[nDays + 2][4];
+        String[][] data = new String[nDays + 2][6];
         data[0][0] = "Day";
         data[0][1] = "Date";
-        data[0][2] = "Hours";
-        data[0][3] = "Notes";
+        data[0][2] = "Working Hours";
+        data[0][3] = "Absent Hours";
+        data[0][4] = "Total Hours";
+        data[0][5] = "Notes";
         for (int i = 1; i <= nDays; i++) {
             List<Serializable> daySummary = getDaySummary(day);
-            double dayHours = (double) daySummary.get(0);
-            String notes = (String) daySummary.get(1);
+            double workingHours = (double) daySummary.get(0);
+            double absentHours = (double) daySummary.get(1);
+            String notes = (String) daySummary.get(2);
             data[i][0] = TimeUtils.weekDay(day);
             data[i][1] = TimeUtils.localDateFormat(day);
-            data[i][2] = String.format("%.2f", dayHours);
-            data[i][3] = notes;
-            totalHours += dayHours;
+            data[i][2] = String.format("%.2f", workingHours);
+            data[i][3] = String.format("%.2f", absentHours);
+            data[i][4] = String.format("%.2f", workingHours + absentHours);
+            data[i][5] = notes;
+            workingHoursTotal += workingHours;
+            absentHoursTotal += absentHours;
             day = TimeUtils.nextDay(day);
         }
         data[nDays + 1][0] = "All";
         data[nDays + 1][1] = "";
-        data[nDays + 1][2] = String.format("%.2f", totalHours);
+        data[nDays + 1][2] = String.format("%.2f (%.2f days)", workingHoursTotal, workingHoursTotal / 8);
+        data[nDays + 1][3] = String.format("%.2f (%.2f days)", absentHoursTotal, absentHoursTotal / 8);
+        double totalHours = workingHoursTotal + absentHoursTotal;
+        data[nDays + 1][4] = String.format("%.2f (%.2f days)", totalHours, totalHours / 8);
         return renderTable(data);
     }
 

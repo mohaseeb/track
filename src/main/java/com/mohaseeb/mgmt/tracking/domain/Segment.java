@@ -26,6 +26,8 @@ public class Segment {
     private long duration;
     @Column
     private String notes;
+    @Column(name="absent", columnDefinition="INTEGER default '0'")
+    private int absent;
 
     public boolean isOpen() {
         return end == null;

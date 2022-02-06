@@ -8,12 +8,13 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public interface TrackingService {
     List<Segment> getAll();
 
-    default Segment start(Instant timeStamp, String note) {
+    default Segment start(Instant timeStamp, boolean absent, String note) {
         // Last segment, if any, should be closed
         Segment last = getLast();
         if (last != null && last.isOpen())
@@ -22,6 +23,7 @@ public interface TrackingService {
         // Store a new segment
         Segment segment = new Segment();
         segment.setStart(timeStamp);
+        segment.setAbsent(absent ? 1 : 0);
         if (note != null) segment.setNotes(note);
         return append(segment);
     }
@@ -43,18 +45,26 @@ public interface TrackingService {
         return summaryBetween(start, end, millis -> millis / (1000. * 60. * 60.));
     }
 
-    default List<Serializable> summaryBetween(Instant start, Instant end, FromSecondsConverter converter) {
+    default List<Serializable> summaryBetween(Instant start, Instant end, FromLong millisToHours) {
         List<Segment> segments = getBetween(start, end);
-        long millis = segments
-                .stream()
-                .mapToLong(Segment::getDuration)
-                .sum();
+        double workingHours = sumSegments(segments, s -> s.getAbsent() == 0, millisToHours);
+        double absentHours = sumSegments(segments, s -> s.getAbsent() == 1, millisToHours);
         String notes = segments
                 .stream()
                 .map(Segment::getNotes)
                 .filter(Objects::nonNull)
                 .collect(Collectors.joining("\n"));
-        return Arrays.asList(converter.convert(millis), notes);
+        return Arrays.asList(workingHours, absentHours, notes);
+    }
+
+    default double sumSegments(List<Segment> segments, Function<Segment, Boolean> filter, FromLong millisToHours) {
+        return segments
+                .stream()
+                .filter(filter::apply)
+                .map(Segment::getDuration)
+                .map(millisToHours::convert)
+                .mapToDouble(d -> d)
+                .sum();
     }
 
     List<Segment> getBetween(Instant start, Instant end);
@@ -66,6 +76,6 @@ public interface TrackingService {
     Segment replaceLast(Segment segment);
 }
 
-interface FromSecondsConverter {
-    double convert(long seconds);
+interface FromLong {
+    double convert(long value);
 }
