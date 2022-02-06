@@ -73,6 +73,7 @@ public class Commands {
         Segment segment = service.delete(Integer.parseInt(id));
         System.out.println("Deleted: \n" + segment);
     }
+
     private Instant parseInstant(String instantStr) {
         return instantStr.equals(NOTSET) ? Instant.now() : Instant.parse(instantStr);
     }
@@ -272,8 +273,10 @@ public class Commands {
     private Table computeDayTotals(Instant day, int nDays) {
         double workingHoursTotal = 0;
         double absentHoursTotal = 0;
+        double expectedWorkingDaysTotal = 0;
+        double expectedHolidayDaysTotal = 0;
 
-        String[][] data = new String[nDays + 2][6];
+        String[][] data = new String[nDays + 3][6];
         data[0][0] = "Day";
         data[0][1] = "Date";
         data[0][2] = "Working Hours";
@@ -281,18 +284,22 @@ public class Commands {
         data[0][4] = "Total Hours";
         data[0][5] = "Notes";
         for (int i = 1; i <= nDays; i++) {
-            List<Serializable> daySummary = getDaySummary(day);
-            double workingHours = (double) daySummary.get(0);
-            double absentHours = (double) daySummary.get(1);
-            String notes = (String) daySummary.get(2);
+            Map<String, Serializable> daySummary = getDaySummary(day);
+            double workingHours = (double) daySummary.get("workingHours");
+            double absentHours = (double) daySummary.get("absentHours");
+            String notes = (String) daySummary.get("notes");
             data[i][0] = TimeUtils.weekDay(day);
             data[i][1] = TimeUtils.localDateFormat(day);
             data[i][2] = String.format("%.2f", workingHours);
             data[i][3] = String.format("%.2f", absentHours);
             data[i][4] = String.format("%.2f", workingHours + absentHours);
             data[i][5] = notes;
+
             workingHoursTotal += workingHours;
             absentHoursTotal += absentHours;
+            expectedWorkingDaysTotal += (double) daySummary.get("expectedWorkingDays");
+            expectedHolidayDaysTotal += (double) daySummary.get("expectedHolidayDays");
+
             day = TimeUtils.nextDay(day);
         }
         data[nDays + 1][0] = "All";
@@ -301,10 +308,16 @@ public class Commands {
         data[nDays + 1][3] = String.format("%.2f (%.2f days)", absentHoursTotal, absentHoursTotal / 8);
         double totalHours = workingHoursTotal + absentHoursTotal;
         data[nDays + 1][4] = String.format("%.2f (%.2f days)", totalHours, totalHours / 8);
+
+        data[nDays + 2][0] = "Balance";
+        data[nDays + 2][1] = "";
+        data[nDays + 2][2] = String.format("Accounted %.2f days", totalHours / 8);
+        data[nDays + 2][3] = String.format("Expected %.2f days", expectedWorkingDaysTotal);
+        data[nDays + 2][4] = String.format("Remaining %.2f days", expectedWorkingDaysTotal - totalHours / 8);
         return renderTable(data);
     }
 
-    private List<Serializable> getDaySummary(Instant dayStart) {
+    private Map<String, Serializable> getDaySummary(Instant dayStart) {
         return service.summaryBetween(dayStart, TimeUtils.nextDay(dayStart));
     }
 

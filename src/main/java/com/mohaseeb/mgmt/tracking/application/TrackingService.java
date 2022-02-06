@@ -3,13 +3,18 @@ package com.mohaseeb.mgmt.tracking.application;
 import com.mohaseeb.mgmt.tracking.domain.Segment;
 import org.joda.time.Instant;
 
-
 import java.io.Serializable;
-import java.util.Arrays;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public interface TrackingService {
     List<Segment> getAll();
@@ -41,11 +46,11 @@ public interface TrackingService {
         return replaceLast(last);
     }
 
-    default List<Serializable> summaryBetween(Instant start, Instant end) {
+    default Map<String, Serializable> summaryBetween(Instant start, Instant end) {
         return summaryBetween(start, end, millis -> millis / (1000. * 60. * 60.));
     }
 
-    default List<Serializable> summaryBetween(Instant start, Instant end, FromLong millisToHours) {
+    default Map<String, Serializable> summaryBetween(Instant start, Instant end, FromLong millisToHours) {
         List<Segment> segments = getBetween(start, end);
         double workingHours = sumSegments(segments, s -> s.getAbsent() == 0, millisToHours);
         double absentHours = sumSegments(segments, s -> s.getAbsent() == 1, millisToHours);
@@ -54,7 +59,19 @@ public interface TrackingService {
                 .map(Segment::getNotes)
                 .filter(Objects::nonNull)
                 .collect(Collectors.joining("\n"));
-        return Arrays.asList(workingHours, absentHours, notes);
+
+        Map<String, Serializable> summary = Map.of(
+                "workingHours", workingHours,
+                "absentHours", absentHours,
+                "notes", notes);
+        return merge(summary, getExpectedDays(start, end));
+    }
+
+    default Map<String, Serializable> merge(Map<String, Serializable> summary, Map<String, Double> expectedDays) {
+        return Stream.concat(
+                summary.entrySet().stream(),
+                expectedDays.entrySet().stream()
+        ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     default double sumSegments(List<Segment> segments, Function<Segment, Boolean> filter, FromLong millisToHours) {
@@ -65,6 +82,34 @@ public interface TrackingService {
                 .map(millisToHours::convert)
                 .mapToDouble(d -> d)
                 .sum();
+    }
+
+    default Map<String, Double> getExpectedDays(Instant start, Instant end) {
+        double workingDays = 0.;
+        double holidayDays = 0.;
+        Date currentDate = start.toDate();
+        Date lastDate = end.toDate();
+        while (currentDate.before(lastDate) || currentDate.equals(lastDate)) {
+            if (isHoliday(currentDate)) {
+                holidayDays += 1;
+            } else {
+                workingDays += 1;
+            }
+            currentDate = nextDate(currentDate);
+        }
+        return Map.of("expectedWorkingDays", workingDays, "expectedHolidayDays", holidayDays);
+    }
+
+    default Date nextDate(Date date) {
+        // TODO clean mess
+        java.time.Instant nextInstant = date.toInstant().plus(1, ChronoUnit.DAYS);
+        LocalDate localDate = nextInstant.atZone(ZoneId.of("UTC")).toLocalDate();
+        return new Date(localDate.getYear(), localDate.getMonthValue() - 1, localDate.getDayOfMonth());
+    }
+
+    default boolean isHoliday(Date currentDate) {
+        DayOfWeek dayOfWeek = currentDate.toInstant().atZone(ZoneId.of("UTC")).getDayOfWeek();
+        return dayOfWeek.equals(DayOfWeek.SATURDAY) || dayOfWeek.equals(DayOfWeek.SUNDAY);
     }
 
     List<Segment> getBetween(Instant start, Instant end);
