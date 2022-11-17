@@ -225,7 +225,7 @@ public class Commands {
                 total += minutes;
                 data[i][0] = TimeUtils.localDateTimeFormat(s.getStart());
                 data[i][1] = TimeUtils.localDateTimeFormat(s.getEnd());
-                data[i][2] = String.format("%.2f", minutes);
+                data[i][2] = String.format("%.4f", minutes/60);
                 data[i][3] = String.format("%s", s.getAbsent() == 1 ? "X" : " ");
                 data[i][4] = s.getNotes();
             }
