@@ -34,10 +34,14 @@ public class TimeUtils {
     static Instant firstDayOfMonth() {
         return today().toDateTime().withDayOfMonth(1).toInstant();
     }
-
     static Instant firstDayOfMonth(int month) {
         return today().toDateTime().withMonthOfYear(month).withDayOfMonth(1).toInstant();
     }
+
+    static Instant firstDayOfMonth(int year, int month) {
+        return today().toDateTime().withYear(year).withMonthOfYear(month).withDayOfMonth(1).toInstant();
+    }
+
 
     static int monthDays(int year, int month){
         return java.time.YearMonth.of(year, month).lengthOfMonth();

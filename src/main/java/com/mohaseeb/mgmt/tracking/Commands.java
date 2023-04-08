@@ -249,10 +249,17 @@ public class Commands {
 
 
     @ShellMethod(value = "show current month days")
-    public Table month(@ShellOption(defaultValue = NOTSET) String month) {
+    public Table month(@ShellOption(defaultValue = NOTSET) String month,
+                       @ShellOption(defaultValue = NOTSET) String year) {
         Instant firstDayOfMonth;
-        if (month.equals(NOTSET)) firstDayOfMonth = TimeUtils.firstDayOfMonth();
-        else firstDayOfMonth = TimeUtils.firstDayOfMonth(Integer.valueOf(month));
+
+        if (year.equals(NOTSET) && month.equals(NOTSET)) {
+            firstDayOfMonth = TimeUtils.firstDayOfMonth();
+        } else if (year.equals(NOTSET)) {
+            firstDayOfMonth = TimeUtils.firstDayOfMonth(Integer.valueOf(month));
+        } else {
+            firstDayOfMonth = TimeUtils.firstDayOfMonth(Integer.valueOf(year), Integer.valueOf(month));
+        }
 
         int monthDays = TimeUtils.monthDays(
                 firstDayOfMonth.toDateTime().getYear(),
